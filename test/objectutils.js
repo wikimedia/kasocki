@@ -61,7 +61,7 @@ describe('matchAsync', () => {
 
         objectutils.matchAsync(o, {'not.a.key': 2})
         .then((res) => {
-            assert.ok(false, 'async undefined lookup should not match');
+            assert.ok(!res, 'async undefined lookup should not match');
         });
     });
 });

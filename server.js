@@ -3,7 +3,7 @@
 
 
 const http =  require('http');
-const socket_io = require('socket.io');
+const socketio = require('socket.io');
 const Kasocki = require('./lib/Kasocki');
 
 
@@ -16,7 +16,7 @@ class KasockiServer {
 
     constructor() {
         this.server = http.createServer();
-        this.io = socket_io(this.server);
+        this.io = socketio(this.server);
 
         this.io.on('connection', (socket) => {
             // Bind Kasocki to this io instance.
@@ -37,4 +37,4 @@ if (require.main === module) {
     new KasockiServer().listen();
 }
 
-module.exports = KasockiServer
+module.exports = KasockiServer;
