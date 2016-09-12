@@ -728,7 +728,7 @@ describe('Kasocki', function() {
             .then((subscribedTopics) => {
                 return client.emitAsync('filter', filters)
             })
-            .then(() => {
+            .then((filters) => {
                 // Consume two messages
                 return Promise.all([
                     client.emitAsync('consume', null),
