@@ -16,6 +16,7 @@ var o = {
     },
 };
 
+
 describe('dot', () => {
     it('should lookup values by dotted keys', () => {
         assert.strictEqual(objectutils.dot(o, 'a'), o.a, 'top level lookup');
@@ -49,4 +50,49 @@ describe('match', () => {
     it('should not match object', () => {
         assert.ok(!objectutils.match(o, {'a': {'no': 'good'}}), 'cannot match with object as filter');
     })
+});
+
+
+describe('buildFilters', () => {
+    it('should build a simple filter', () => {
+        let filters = {'a.b.c': 1234};
+        let built = objectutils.buildFilters(filters);
+        assert.deepEqual(built, filters);
+    });
+
+    it('should build a regex filter', () => {
+        let filters = {'a.b.c': '/(woo|wee)/'};
+        let built = objectutils.buildFilters(filters);
+        assert.deepEqual(built['a.b.c'], /(woo|wee)/, 'should convert filter to a RegExp');
+    });
+
+    it('should fail with a non object', () => {
+        let filters = 'gonna fail dude';
+        try {
+            objectutils.builtFilters(filters);
+        }
+        catch (e) {
+            assert.ok(e instanceof Error);
+        }
+    });
+
+    it('should fail with a non string or number filter', () => {
+        let filters = {'a.b.c': [1,2,3]};
+        try {
+            objectutils.builtFilters(filters);
+        }
+        catch (e) {
+            assert.ok(e instanceof Error);
+        }
+    });
+
+    it('should fail with a bad regex filter', () => {
+        let filters = {'a.b.c': '/(dangling paren.../'};
+        try {
+            objectutils.builtFilters(filters);
+        }
+        catch (e) {
+            assert.ok(e instanceof Error);
+        }
+    });
 });
