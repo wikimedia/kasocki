@@ -28,7 +28,7 @@ class TestKasockiServer {
 
         this.log = bunyan.createLogger({
             name: 'KasockiTest',
-            // level: 'debug',
+            // level: 'trace',
             level: 'fatal',
         });
 

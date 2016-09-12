@@ -50,18 +50,3 @@ describe('match', () => {
         assert.ok(!objectutils.match(o, {'a': {'no': 'good'}}), 'cannot match with object as filter');
     })
 });
-
-
-describe('matchAsync', () => {
-    it('should return a Promise of a matched object', () => {
-        objectutils.matchAsync(o, {'a': 'b'})
-        .then((res) => {
-            assert.ok(res, 'async top level lookup should match');
-        });
-
-        objectutils.matchAsync(o, {'not.a.key': 2})
-        .then((res) => {
-            assert.ok(!res, 'async undefined lookup should not match');
-        });
-    });
-});
