@@ -798,7 +798,7 @@ describe('Kasocki', function() {
             { topic: topicNames[1], partition: 0, offset: 0 }
         ];
 
-        // Filter where name matches a bad regex
+        // invalid filters, not an object
         const filters = 'this will fail';
 
         client.on('ready', () => {
