@@ -28,6 +28,10 @@ io.on('connection', (socket) => {
     let kasocki = new Kasocki(socket, {
         kafkaConfig: {'metadata.broker.list': 'mybroker:9092'}
     });
+    kasocki.connect()
+    .then(() => {
+        console.log(`Kasocki ready for socket ${socket.name}`)
+    });
 });
 
 server.listen(6927);

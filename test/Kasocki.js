@@ -28,7 +28,7 @@ class TestKasockiServer {
 
         this.log = bunyan.createLogger({
             name: 'KasockiTest',
-            // level: 'trace',
+            // level: 'debug',
             level: 'fatal',
         });
 
@@ -39,6 +39,10 @@ class TestKasockiServer {
             // Kafka broker should be running at localhost:9092.
             // TODO: How to Mock Kafka broker and prep topics and data?
             this.kasocki = new Kasocki(socket, kasockiOptions);
+            this.kasocki.connect()
+            .then(() => {
+                this.log.debug('Connected Kasocki ready');
+            });
 
             // TODO: This is a total hack.  Calling KafkaConsumer
             // disconnect can result in hung processes until
