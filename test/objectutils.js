@@ -95,4 +95,20 @@ describe('buildFilters', () => {
             assert.ok(e instanceof Error);
         }
     });
+
+    it('should fail with an unsafe regex filter', () => {
+        let filters = {'a.b.c': '/(a+){10}/'};
+        try {
+            objectutils.builtFilters(filters);
+        }
+        catch (e) {
+            assert.ok(e instanceof Error);
+        }
+    });
+
+    it('should build an unsafe regex filter with safe parameter = false', () => {
+        let filters = {'a.b.c': '/(a+){10}/'};
+        let built = objectutils.buildFilters(filters, false);
+        assert.deepEqual(built['a.b.c'], /(a+){10}/, 'should convert unsafe filter to a RegExp');
+    });
 });

@@ -627,7 +627,7 @@ describe('Kasocki', function() {
     });
 
 
-    // == Test filter
+    // == Test filter ==
 
     it('should consume two messages from two topics with a simple filter', function(done) {
         const client = createClient(serverPort);
@@ -859,6 +859,34 @@ describe('Kasocki', function() {
         // Filter where name matches a bad regex
         const filters = {
             'name': '/(green|red doors?$/'
+        }
+
+        client.on('ready', () => {
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                return client.emitAsync('filter', filters)
+            })
+            .catch((e) => {
+                assert.errorNameEqual(e, 'InvalidFilterError');
+            })
+            .finally(() => {
+                client.disconnect();
+                done();
+            });
+        });
+    });
+
+    it('should fail filter with an unsafe regex', function(done) {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        // Filter where name matches a bad regex
+        const filters = {
+            'name': '/(a+){10}/'
         }
 
         client.on('ready', () => {
