@@ -228,9 +228,6 @@ and will have to be resolved somehow before this is put into production.
 ## TODO
 
 - Feedback to client if their assignment offset does not exist anymore
-- tests for utils.js
-- make kafka functions in utils.js work with KafkaConsumer metadata instead of consumer
-  to make testing easier.
 - tests for kafkaEventHandlers
 - Filter for array values
 - filter glob wildcards?
