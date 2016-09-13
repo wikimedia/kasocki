@@ -224,7 +224,7 @@ describe('Kasocki', function() {
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', {'this': 'will fail'})
             .catch((e) => {
-                assert.errorNameEqual(e, 'InvalidTopicError');
+                assert.errorNameEqual(e, 'InvalidAssignmentError');
             })
             .finally(() => {
                 client.disconnect();

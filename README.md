@@ -115,12 +115,12 @@ Subscribe at specified topic partition offsets:
 
 // Subscribe to some topics, specifying all partitions and
 // offsets from which to start.
-let topicAssignment = [
+let topicAssignments = [
     { topic: 'mytopic1', partition: 0, offset: 5012 },
     { topic: 'mytopic1', partition: 1, offset: 5056 },
     { topic: 'mytopic2', partition: 0, offset: 1023 },
 ];
-socket.emit('subscribe', topicAssignment, ackCallback);
+socket.emit('subscribe', topicAssignments, ackCallback);
 ```
 
 Most socket events will return errors in the ack callback, but

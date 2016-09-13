@@ -38,9 +38,62 @@ describe('getAvailableTopics', () => {
 });
 
 
-describe('buildPartitionAssignments', () => {
+describe('validateAssignments', () => {
+    it('should validate an array of topic names', () => {
+        assert.ok(utils.validateAssignments(['a', 'b', 'c']));
+    });
+
+    it('should validate an array of assignment objects', () => {
+        let assignments = [
+            { topic: 'test0', partition: 0, offset: 123 },
+            { topic: 'test1', partition: 0, offset: 456 },
+            { topic: 'test1', partition: 1, offset: 234 }
+        ]
+        assert.ok(utils.validateAssignments(assignments));
+    });
+
+    it('should fail validation of a non array', () => {
+        assert.throws(utils.validateAssignments.bind(undefined, 'nope'));
+    });
+
+    it('should fail validation of an empty array', () => {
+        assert.throws(utils.validateAssignments.bind(undefined, []));
+    });
+
+    it('should fail validation of topic names with bad elements', () => {
+        assert.throws(utils.validateAssignments.bind(undefined, ['test0', 1234]));
+    });
+
+    it('should fail validation of assignment objects with bad elements', () => {
+        assert.throws(utils.validateAssignments.bind(undefined,
+            [{ topic: 'test1', partition: 1, offset: 234 }, 1234]
+        ));
+    });
+
+    it('should fail validation of assignment objects missing a property', () => {
+        assert.throws(utils.validateAssignments.bind(undefined,
+            //  this is missing 'offset'
+            [{ topic: 'test1', partition: 1, } ]
+        ));
+    });
+
+    it('should fail validation of assignment objects with bad properties', () => {
+        assert.throws(utils.validateAssignments.bind(undefined,
+            [{ topic: 1234, partition: 1, offset: 234 } ]
+        ));
+        assert.throws(utils.validateAssignments.bind(undefined,
+            [{ topic: 'test1', partition: 'hi', offset: 234 } ]
+        ));
+        assert.throws(utils.validateAssignments.bind(undefined,
+            [{ topic: 'test1', partition: 1, offset: ['bad', 'offset'] } ]
+        ));
+    });
+});
+
+
+describe('buildAssignments', () => {
     it('should return empty array if topic does not exist', () => {
-        let assignments = utils.buildPartitionAssignments(topicsInfo, ['does-not-exist']);
+        let assignments = utils.buildAssignments(topicsInfo, ['does-not-exist']);
         assert.deepEqual(
             assignments,
             []
@@ -48,7 +101,7 @@ describe('buildPartitionAssignments', () => {
     });
 
     it('should return assignments for a single partition topic', () => {
-        let assignments = utils.buildPartitionAssignments(topicsInfo, ['test0']);
+        let assignments = utils.buildAssignments(topicsInfo, ['test0']);
         assert.deepEqual(
             assignments,
             [ { topic: 'test0', partition: 0, offset: -1 } ]
@@ -56,7 +109,7 @@ describe('buildPartitionAssignments', () => {
     });
 
     it('should return assignments for a multiple partition topic', () => {
-        let assignments = utils.buildPartitionAssignments(topicsInfo, ['test1']);
+        let assignments = utils.buildAssignments(topicsInfo, ['test1']);
         assert.deepEqual(
             assignments,
             [
@@ -67,7 +120,7 @@ describe('buildPartitionAssignments', () => {
     });
 
     it('should return assignments for a multiple topics', () => {
-        let assignments = utils.buildPartitionAssignments(topicsInfo, ['test0', 'test1']);
+        let assignments = utils.buildAssignments(topicsInfo, ['test0', 'test1']);
         assert.deepEqual(
             assignments,
             [
