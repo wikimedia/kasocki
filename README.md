@@ -1,8 +1,8 @@
-[![Travis](https://travis-ci.org/wikimedia/kasocki.svg?branch=master)](https://travis-ci.org/wikimedia/kasocki)
-[![Coveralls](https://coveralls.io/repos/github/wikimedia/kasocki/badge.svg)](https://coveralls.io/github/wikimedia/kasocki)
-
 # Kasocki
-_Under heavy development, still a work in progress._
+
+[![Travis](https://travis-ci.org/wikimedia/kasocki.svg?branch=master)](https://travis-ci.org/wikimedia/kasocki)
+[![Coveralls](https://coveralls.io/repos/github/wikimedia/kasocki/badge.svg?branch=master)](https://coveralls.io/github/wikimedia/kasocki?branch=master)
+
 
 Kafka Consumer -> socket.io library.  All messages in Kafka are assumed to be
 utf-8 JSON strings.  These are decoded and augmented, and then emitted

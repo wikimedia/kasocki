@@ -104,7 +104,7 @@ assert.errorNameEqual = (e, errorName) => {
 }
 
 describe('Kasocki', function() {
-    this.timeout(20000);
+    this.timeout(30000);
 
     const topicNames = [
         'kasocki_test_01',
