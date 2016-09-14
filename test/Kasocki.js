@@ -997,6 +997,38 @@ describe('Kasocki', function() {
         });
     });
 
+    it('should reset filters', function(done) {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        // Filter where price is 25.00
+        const filters = {
+            'price': 25.00
+        }
+
+        client.on('ready', () => {
+
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                return client.emitAsync('filter', filters)
+            })
+            .then((returnedFilters) => {
+                return client.emitAsync('filter', undefined);
+            })
+            .then((returnedFilters) => {
+                assert.equal(returnedFilters, undefined, 'filters should be reset to undefined');
+            })
+            .finally(() => {
+                client.disconnect();
+                done();
+            });
+        });
+    });
+
 
     // == Test push based consume with start
 
