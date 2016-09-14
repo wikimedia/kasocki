@@ -79,7 +79,7 @@ socket.emit('consume', null, ackCallback);
 ```
 
 
-Consuming using `message` handler and `start`:
+### Consume using `message` handler and `start` instead of `socket.emit('consume')`
 ```javascript
 // Register an on 'message' handler to receive messages
 // after starting a continuous consumer.
@@ -110,7 +110,7 @@ BBPromise.delay(2000)
 
 ```
 
-Subscribe at specified topic partition offsets:
+### Subscribe at specified topic partition offsets
 ```javascript
 
 // Subscribe to some topics, specifying all partitions and
@@ -123,8 +123,17 @@ let topicAssignments = [
 socket.emit('subscribe', topicAssignments, ackCallback);
 ```
 
-Most socket events will return errors in the ack callback, but
-you can also receive them via an `err` socket event handler.
+If you attempt to assign an offset that no longer exists on the Kafka brokers,
+your assignment will automatically be reset to the value of `auto.offset.reset`.
+This value is configurable when instantiating a new Kasocki instance, via
+`options.kafkaConfig.default_topic_config['auto.offset.reset']`.  See:
+https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md for more info.
+
+
+### Errors
+
+Most socket events will return errors as the first argument to the socket.emit
+ack callback, but you can also receive them via an `err` socket event handler.
 This is especially useful for receiving and handling
 errors that might happen during the async streaming consume loop
 that runs after `start` is emitted.
@@ -227,7 +236,6 @@ and will have to be resolved somehow before this is put into production.
 
 ## TODO
 
-- Feedback to client if their assignment offset does not exist anymore
 - tests for kafkaEventHandlers
 - Filter for array values
 - filter glob wildcards?
