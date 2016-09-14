@@ -20,11 +20,11 @@ dropTopics ( ) {
     TOPICS=`${KAFKA_TOPICS_CMD} --zookeeper localhost:2181 --list \
     	| grep ${PATTERN} \
     	| grep -v 'marked for deletion$'`
-    for TOPIC in ${TOPICS}
-    do
+    for TOPIC in ${TOPICS}; do
       echo "Dropping topic ${TOPIC}"
-      ${KAFKA_TOPICS_CMD} --zookeeper localhost:2181 --delete --topic ${TOPIC} > /dev/null
+      ${KAFKA_TOPICS_CMD} --zookeeper localhost:2181 --delete --topic ${TOPIC} > /dev/null &
     done
+    wait
   fi
 }
 
@@ -57,11 +57,9 @@ dropTopics "kasocki_test_"
 sleep 5
 
 #  TODO: 0 index these topic names and data
-createTopic kasocki_test_01
-createTopic kasocki_test_02
-createTopic kasocki_test_03
-createTopic kasocki_test_04
+(createTopic kasocki_test_01 && produceTestData kasocki_test_01 $(dirname $0)/test_data1.json) &
+(createTopic kasocki_test_02 && produceTestData kasocki_test_02 $(dirname $0)/test_data2.json) &
+(createTopic kasocki_test_03 && produceTestData kasocki_test_03 $(dirname $0)/test_data3.json) &
+createTopic kasocki_test_04 &
 
-produceTestData kasocki_test_01 $(dirname $0)/test_data1.json
-produceTestData kasocki_test_02 $(dirname $0)/test_data2.json
-produceTestData kasocki_test_03 $(dirname $0)/test_data3.json
+wait
