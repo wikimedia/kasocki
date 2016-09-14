@@ -5,7 +5,7 @@
   "main": "lib/Kasocki.js",
   "scripts": {
     "start": "./server.js | ./node_modules/bunyan/bin/bunyan",
-    "test": "npm run kafka-install && npm run kafka-stop && npm run kafka-start && npm run kafka-fixture && npm run coverage && npm run kafka-stop",
+    "test": "npm run test-jenkins",
     "kafka-install": "./test/utils/kafka_install.sh",
     "kafka-start": "./test/utils/kafka.sh start",
     "kafka-stop": "./test/utils/kafka.sh stop",
@@ -13,7 +13,9 @@
     "mocha": "export UV_THREADPOOL_SIZE=128; mocha",
     "coverage": "export UV_THREADPOOL_SIZE=128 && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "test-vagrant": "npm run kafka-fixture && npm run coverage"
+    "test-vagrant": "npm run kafka-fixture && npm run coverage",
+    "test-jenkins": "npm run kafka-install && npm run kafka-stop && npm run kafka-start && npm run kafka-fixture && npm run coverage && npm run kafka-stop",
+    "test-travis": "npm run kafka-install && npm run kafka-start && npm run kafka-fixture && npm run coverage",
   },
   "repository": {
     "type": "git",
