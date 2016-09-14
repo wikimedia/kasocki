@@ -16,6 +16,24 @@ var o = {
     },
 };
 
+describe('factory', () => {
+    it('should return same object if given object', () => {
+        assert.equal(objectutils.factory(o), o);
+    });
+
+    it('should return object from JSON string', () => {
+        assert.deepEqual(objectutils.factory(JSON.stringify(o)), o);
+    });
+
+    it('should return object from JSON Buffer', () => {
+        let buffer = new Buffer(JSON.stringify(o));
+        assert.deepEqual(objectutils.factory(buffer), o);
+    });
+
+    it('should fail with wrong type', () => {
+        assert.throws(objectutils.factory.bind(undefined, 12345));
+    });
+});
 
 describe('dot', () => {
     it('should lookup values by dotted keys', () => {
@@ -47,9 +65,14 @@ describe('match', () => {
         assert.ok(!objectutils.match(o, {'o2.r': /^b.*$/, 'a': 'c'}), 'regex should match but literal should not');
     })
 
-    it('should not match object', () => {
+    it('should not match object filter', () => {
         assert.ok(!objectutils.match(o, {'a': {'no': 'good'}}), 'cannot match with object as filter');
     })
+
+    it('should not match object as key target', () => {
+        assert.ok(!objectutils.match(o, {'o2': 'nope'}), 'cannot match with object as key target');
+    })
+
 });
 
 
@@ -68,42 +91,22 @@ describe('buildFilters', () => {
 
     it('should fail with a non object', () => {
         let filters = 'gonna fail dude';
-        try {
-            objectutils.builtFilters(filters);
-        }
-        catch (e) {
-            assert.ok(e instanceof Error);
-        }
+        assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 
     it('should fail with a non string or number filter', () => {
         let filters = {'a.b.c': [1,2,3]};
-        try {
-            objectutils.builtFilters(filters);
-        }
-        catch (e) {
-            assert.ok(e instanceof Error);
-        }
+        assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 
     it('should fail with a bad regex filter', () => {
         let filters = {'a.b.c': '/(dangling paren.../'};
-        try {
-            objectutils.builtFilters(filters);
-        }
-        catch (e) {
-            assert.ok(e instanceof Error);
-        }
+        assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 
     it('should fail with an unsafe regex filter', () => {
         let filters = {'a.b.c': '/(a+){10}/'};
-        try {
-            objectutils.builtFilters(filters);
-        }
-        catch (e) {
-            assert.ok(e instanceof Error);
-        }
+        assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 
     it('should build an unsafe regex filter with safe parameter = false', () => {

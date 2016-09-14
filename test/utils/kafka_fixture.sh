@@ -60,6 +60,6 @@ sleep 5
 (createTopic kasocki_test_01 && produceTestData kasocki_test_01 $(dirname $0)/test_data1.json) &
 (createTopic kasocki_test_02 && produceTestData kasocki_test_02 $(dirname $0)/test_data2.json) &
 (createTopic kasocki_test_03 && produceTestData kasocki_test_03 $(dirname $0)/test_data3.json) &
-createTopic kasocki_test_04 &
+(createTopic kasocki_test_04 && produceTestData kasocki_test_04 $(dirname $0)/test_data2.json) &
 
 wait

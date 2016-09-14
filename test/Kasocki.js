@@ -627,6 +627,10 @@ describe('Kasocki', function() {
     });
 
     it('should subscribe and consume with offset reset to latest', function(done) {
+        // Since we will produce data to kasocki_test_04, it is reserved for
+        // this test only.
+        const topicName = 'kasocki_test_04';
+
         const kafka = require('node-rdkafka');
         var producer = new kafka.Producer({
           'metadata.broker.list': 'localhost:9092',
@@ -641,10 +645,10 @@ describe('Kasocki', function() {
 
         producer.connectAsync(undefined)
         .then(() => {
-            const topic = producer.Topic(topicNames[1], {'request.required.acks': 1});
+            const topic = producer.Topic(topicName, {'request.required.acks': 1});
 
             const client = createClient(serverPort);
-            const assignment = [ { topic: topicNames[1], partition: 0, offset: 99999999999 } ];
+            const assignment = [ { topic: topicName, partition: 0, offset: 99999999999 } ];
 
             client.on('ready', (availableTopics) => {
                 client.emitAsync('subscribe', assignment)
@@ -676,9 +680,9 @@ describe('Kasocki', function() {
                     });
                 })
                 .then((msg) => {
-                    // fixture_kafka.sh should have set up 2 message in topicNames[1] (kasocki_test_02).
+                    // fixture_kafka.sh should have set up 2 messages in kasocki_test_04.
                     // Since we produced 1 more message, we should have consumed the 3rd message at offset 2.
-                    assert.equal(msg._kafka.offset, 2, `offset should have reset to latest in ${topicNames[1]}`);
+                    assert.equal(msg._kafka.offset, 2, `offset should have reset to latest in ${topicName}`);
                 })
                 .finally(() => {
                     client.disconnect();
@@ -997,6 +1001,38 @@ describe('Kasocki', function() {
         });
     });
 
+    it('should reset filters', function(done) {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        // Filter where price is 25.00
+        const filters = {
+            'price': 25.00
+        }
+
+        client.on('ready', () => {
+
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                return client.emitAsync('filter', filters)
+            })
+            .then((returnedFilters) => {
+                return client.emitAsync('filter', undefined);
+            })
+            .then((returnedFilters) => {
+                assert.equal(returnedFilters, undefined, 'filters should be reset to undefined');
+            })
+            .finally(() => {
+                client.disconnect();
+                done();
+            });
+        });
+    });
+
 
     // == Test push based consume with start
 
@@ -1030,7 +1066,7 @@ describe('Kasocki', function() {
                     { topic: topicNames[1], offset: 0 },
                     { topic: topicNames[1], offset: 1 }
                 ]
-                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
+                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
             .finally(() => {
@@ -1078,7 +1114,7 @@ describe('Kasocki', function() {
                 let shouldHave = [
                     { topic: topicNames[1], offset: 0 },
                 ]
-                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
+                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
             .finally(() => {
@@ -1165,7 +1201,32 @@ describe('Kasocki', function() {
     });
 
 
-    // == Test stop
+    // == Test stop ==
+
+    it('should do nothing if stopped before started', function(done) {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        client.on('ready', () => {
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                // start consuming, the on message handler will collect them
+                client.emitAsync('stop', null);
+            })
+            // Stop and assert that nothing bad happened.
+            .then(() => {
+                assert.ok(true);
+            })
+            .finally(() => {
+                client.disconnect();
+                done();
+            });
+        });
+    });
 
     it('should handle three messages from two topics with stop and resume', function(done) {
         const client = createClient(serverPort);
@@ -1207,7 +1268,7 @@ describe('Kasocki', function() {
                     { topic: topicNames[1], offset: 0 },
                     { topic: topicNames[1], offset: 1 }
                 ]
-                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
+                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
             .finally(() => {
