@@ -1197,7 +1197,32 @@ describe('Kasocki', function() {
     });
 
 
-    // == Test stop
+    // == Test stop ==
+
+    it('should do nothing if stopped before started', function(done) {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        client.on('ready', () => {
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                // start consuming, the on message handler will collect them
+                client.emitAsync('stop', null);
+            })
+            // Stop and assert that nothing bad happened.
+            .then(() => {
+                assert.ok(true);
+            })
+            .finally(() => {
+                client.disconnect();
+                done();
+            });
+        });
+    });
 
     it('should handle three messages from two topics with stop and resume', function(done) {
         const client = createClient(serverPort);
