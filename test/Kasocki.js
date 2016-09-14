@@ -28,7 +28,7 @@ class TestKasockiServer {
 
         this.log = bunyan.createLogger({
             name: 'KasockiTest',
-            // level: 'debug',
+            // level: 'trace',
             level: 'fatal',
         });
 
@@ -378,7 +378,7 @@ describe('Kasocki', function() {
         });
     });
 
-    it('should subscribe with offsets to a single allowwed topic', function(done) {
+    it('should subscribe with offsets to a single allowed topic', function(done) {
         const client = createClient(restrictiveServerPort);
         const assignment = [ { topic: topicNames[0], partition: 0, offset: 0 } ];
 
@@ -610,7 +610,7 @@ describe('Kasocki', function() {
             client.emitAsync('subscribe', assignment)
             .then((subscribedTopics) => {
                 // consume
-                return client.emitAsync('consume', null)
+                return client.emitAsync('consume', null);
             })
             .then((msg) => {
                 // The first message in topicNames[2] (kasocki_test_03)
@@ -624,6 +624,99 @@ describe('Kasocki', function() {
                 done();
             });
         })
+    });
+
+    it('should subscribe and consume with offset reset to latest', function(done) {
+        const kafka = require('node-rdkafka');
+        var producer = new kafka.Producer({
+          'metadata.broker.list': 'localhost:9092',
+        });
+        producer = P.promisifyAll(producer, {});
+
+        // Just fail if we encounter any producer errors.
+        producer.on('error', (e) => {
+            throw Error(`Kafka producer threw error: ${e.message}`);
+        });
+
+        producer.connectAsync(undefined)
+        .then(() => {
+            const topic = producer.Topic(topicNames[1], {'request.required.acks': 1});
+
+            const client = createClient(serverPort);
+            const assignment = [ { topic: topicNames[1], partition: 0, offset: 99999999999 } ];
+
+            client.on('ready', (availableTopics) => {
+                client.emitAsync('subscribe', assignment)
+                .then((returnedAssignment) => {
+                    // We need to interleave a consume and a produce call.
+                    // The consume must happen first, so that the non-existent
+                    // offset can be requested and reset.  Then, a message
+                    // needs to be produced to the topic.  The consume
+                    // call should pick up this message.
+
+                    // attempt to consume, but don't return the promise yet.
+                    let consumePromise = client.emitAsync('consume', null);
+
+                    // Delay for a bit to make sure the consume request
+                    //  has time to make it to Kafka.
+                    return P.delay(3000)
+                    // Then produce a message;
+                    .then(() => {
+                        return producer.produceAsync({
+                            message: new Buffer('{"a": "new message"}'),
+                            partition: 0,
+                            topic: topic
+                        })
+                    })
+                    // Once the message has been produced, return the
+                    // consumePromise and wait for it to be resolved.
+                    .then(() => {
+                        return consumePromise;
+                    });
+                })
+                .then((msg) => {
+                    console.log('consumed message', msg);
+                    // fixture_kafka.sh should have set up 2 message in topicNames[1] (kasocki_test_02).
+                    // Since we produced 1 more message, we should have consumed the 3rd message at offset 2.
+                    assert.equal(msg._kafka.offset, 2, `offset should have reset to latest in ${topicNames[1]}`);
+                })
+                .finally(() => {
+                    client.disconnect();
+                    done();
+                });
+            });
+        });
+    });
+
+    it('should subscribe and consume with offset reset to earliest', function(done) {
+        const earliestServerPort = 6905;
+        const earliestServer = new TestKasockiServer(earliestServerPort, {
+            kafkaConfig: {
+                default_topic_config: {
+                    'auto.offset.reset': 'earliest'
+                }
+            }
+        });
+        earliestServer.listen();
+
+        const client = createClient(earliestServerPort);
+        const assignment = [ { topic: topicNames[0], partition: 0, offset: 999999999 } ];
+
+        client.on('ready', (availableTopics) => {
+            client.emitAsync('subscribe', assignment)
+            .then((returnedAssignment) => {
+                // consume
+                return client.emitAsync('consume', null);
+            })
+            .then((msg) => {
+                assert.equal(msg._kafka.offset, 0, `offset should have reset to earliest in ${topicNames[1]}`);
+            })
+            .finally(() => {
+                client.disconnect();
+                earliestServer.close();
+                done();
+            });
+        });
     });
 
 
