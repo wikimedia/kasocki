@@ -25,4 +25,6 @@ echo 'delete.topic.enable=true' >> ${KAFKA_HOME}/config/server.properties
 # Link installed kafka logs into jenkins workspace logs so that jenkins can pick them up.
 if [ -n "${WORKSPACE}" ]; then
     ln -sfv "${WORKSPACE}/log" "${KAFKA_HOME}/logs"
+else
+    mkdir -pv "${KAFKA_HOME}/logs"
 fi

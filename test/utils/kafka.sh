@@ -9,8 +9,8 @@ echo "Using kafka installed at ${KAFKA_HOME}"
 if [ "$1" == "start" ]; then
     if [ `netstat -l | grep -q 2181; echo $?` -ne 0 ]; then
         echo "Starting Zookeeper..."
-        echo "sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties > $KAFKA_HOME/logs/broker.out &"
-        sh $KAFKA_HOME/bin/zookeeper-server-start.sh $KAFKA_HOME/config/zookeeper.properties > $KAFKA_HOME/logs/zookeeper.out &
+        echo "sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &"
+        sh $KAFKA_HOME/bin/zookeeper-server-start.sh $KAFKA_HOME/config/zookeeper.properties &
         while [ `netstat -l | grep -q 2181; echo $?` -ne 0 ]; do
             echo "waiting for Zookeeper..."
             sleep 1 ;
@@ -21,8 +21,8 @@ if [ "$1" == "start" ]; then
 
     if [ `netstat -l | grep -q 9092; echo $?` -ne 0 ]; then
         echo "Starting Kafka..."
-        echo "sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties > $KAFKA_HOME/logs/broker.out &"
-        sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties > $KAFKA_HOME/logs/broker.out &
+        echo "sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &"
+        sh $KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties &
         while [ `netstat -l | grep -q 9092; echo $?` -ne 0 ]; do
             echo "waiting for Kafka..." ;
             sleep 1 ;
