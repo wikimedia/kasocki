@@ -5,14 +5,19 @@
   "main": "lib/Kasocki.js",
   "scripts": {
     "start": "./server.js | ./node_modules/bunyan/bin/bunyan",
-    "test": "export UV_THREADPOOL_SIZE=128 && npm run coverage && npm run coveralls",
-    "cleanup": "test/utils/clean_kafka.sh",
-    "coverage": "export UV_THREADPOOL_SIZE=128 && npm run cleanup && istanbul cover _mocha -- -R spec",
-    "coveralls": "cat ./coverage/lcov.info | coveralls"
+    "test": "npm run kafka-install && npm run kafka-stop && npm run kafka-start && npm run kafka-fixture && npm run coverage && npm run kafka-stop",
+    "kafka-install": "./test/utils/kafka_install.sh",
+    "kafka-start": "./test/utils/kafka.sh start",
+    "kafka-stop": "./test/utils/kafka.sh stop",
+    "kafka-fixture": "./test/utils/kafka_fixture.sh",
+    "mocha": "export UV_THREADPOOL_SIZE=128; mocha",
+    "coverage": "export UV_THREADPOOL_SIZE=128 && istanbul cover _mocha -- -R spec",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test-vagrant": "npm run kafka-fixture && npm run coverage"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ottomata/kasocki.git"
+    "url": "git+https://github.com/wikimedia/kasocki.git"
   },
   "keywords": [
     "kafka",
@@ -26,12 +31,12 @@
   },
   "homepage": "https://github.com/ottomata/kasocki#readme",
   "dependencies": {
-      "bunyan": "^1.8.1",
-      "bluebird": "^3.4.3",
-      "socket.io": "^1.4.8",
-      "node-rdkafka": "^0.3.3",
-      "lodash": "^4.15.0",
-      "safe-regex": "^1.1.0"
+    "bunyan": "^1.8.1",
+    "bluebird": "^3.4.3",
+    "socket.io": "^1.4.8",
+    "node-rdkafka": "^0.3.3",
+    "lodash": "^4.15.0",
+    "safe-regex": "^1.1.0"
   },
   "devDependencies": {
     "istanbul": "^0.4.4",
@@ -39,6 +44,7 @@
     "mocha": "^2.5.3",
     "mocha-jscs": "^5.0.1",
     "mocha-jshint": "^2.3.1",
+    "coveralls": "^2.11.11",
     "mocha-lcov-reporter": "^1.2.0",
     "nsp": "^2.6.1",
     "socket.io-client": "^1.4.8"

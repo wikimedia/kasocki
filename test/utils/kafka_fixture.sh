@@ -1,20 +1,16 @@
 #!/bin/bash
 
-check_kafka_home() {
-    if [ "x$KAFKA_HOME" = "x" ]; then
-      echo "Please set KAFKA_HOME env variable to the kafka install directory"
-      exit 1
-    fi
-}
+KAFKA_VERSION="${KAFKA_VERSION:-0.9.0.1}"
+SCALA_VERSION="${SCALA_VERSION:-2.11}"
+# This will only be used if KAFKA_TOPICS_CMD or
+# KAFKA_CONSOLE_PRODUCER_CMD are not defined.
+KAFKA_HOME=${KAFKA_HOME:-"../kafka_${SCALA_VERSION}-${KAFKA_VERSION}"}
 
-if [ -z "${KAFKA_TOPICS_CMD}" ]; then
-    check_kafka_home
-    KAFKA_TOPICS_CMD="${KAFKA_HOME}/bin/kafka-topics.sh"
-fi
-if [ -z "${KAFKA_CONSOLE_PRODUCER_CMD}" ]; then
-    check_kafka_home
-    KAFKA_CONSOLE_PRODUCER_CMD="${KAFKA_HOME}/bin/kafka-console-producer.sh"
-fi
+KAFKA_TOPICS_CMD=${KAFKA_TOPICS_CMD:-"$KAFKA_HOME/bin/kafka-topics.sh"}
+KAFKA_CONSOLE_PRODUCER_CMD=${KAFKA_CONSOLE_PRODUCER_CMD:-"$KAFKA_HOME/bin/kafka-console-producer.sh"}
+
+echo "Using kafka topics command: $KAFKA_TOPICS_CMD"
+echo "Using kafka console producer command: $KAFKA_CONSOLE_PRODUCER_CMD"
 
 dropTopics ( ) {
   if [ "$#" -eq 1 ]
@@ -49,7 +45,7 @@ produceTestData ( ) {
 check ( ) {
   PORT=$1
   SERVICE_NAME=$2
-  if [ `nc localhost ${PORT} < /dev/null; echo $?` != 0 ]; then
+  if [ `netstat -l | grep -q ${PORT}; echo $?` -ne 0 ]; then
     echo "${SERVICE_NAME} not running, start it first"
     exit 1
   fi

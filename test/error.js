@@ -5,7 +5,6 @@
 /* global describe, it, before, beforeEach, after, afterEach */
 
 const assert = require('assert');
-const serializerr = require('serializerr');
 
 const errors                 = require('../lib/error.js');
 const ExtendableError        = errors.ExtendableError;
@@ -39,18 +38,6 @@ describe('ExtendableError', () => {
 
         assert.equal(ee.prop1, e.prop1, 'enumerable properties should be present');
     });
-
-    it('should serialize with properties', function() {
-        let m = 'error string';
-        let e = new Error(m)
-        e.prop1 = 'a property value';
-        let ee = new ExtendableError(e);
-
-        let serializedError = serializerr(ee);
-        let deserializedError = JSON.parse(JSON.stringify(serializedError));
-        assert.equal(deserializedError.message, ee.message);
-        assert.equal(deserializedError.prop1, ee.prop1);
-    })
 });
 
 
