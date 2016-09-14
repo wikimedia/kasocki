@@ -635,6 +635,7 @@ describe('Kasocki', function() {
 
         // Just fail if we encounter any producer errors.
         producer.on('error', (e) => {
+            console.log(e);
             throw Error(`Kafka producer threw error: ${e.message}`);
         });
 
@@ -675,7 +676,6 @@ describe('Kasocki', function() {
                     });
                 })
                 .then((msg) => {
-                    console.log('consumed message', msg);
                     // fixture_kafka.sh should have set up 2 message in topicNames[1] (kasocki_test_02).
                     // Since we produced 1 more message, we should have consumed the 3rd message at offset 2.
                     assert.equal(msg._kafka.offset, 2, `offset should have reset to latest in ${topicNames[1]}`);
