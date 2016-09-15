@@ -11,6 +11,9 @@ const Kasocki = require('./lib/Kasocki');
  * Kasocki socket.io test server.
  * Connect to this with a client on port 6927.
  * Kafka broker must be running at localhost:9092.
+ * NOTE: This is just an example server.  You should
+ * probably instantiate your own http/socket.io instnaces
+ * and connect Kasocki instances to connected clients in your own app.
  */
 class KasockiServer {
 
