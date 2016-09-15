@@ -13,13 +13,13 @@
     "mocha": "export UV_THREADPOOL_SIZE=128; mocha",
     "coverage": "export UV_THREADPOOL_SIZE=128 && istanbul cover _mocha -- -R spec",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "test-vagrant": "npm run kafka-fixture && npm run coverage",
+    "test-local": "npm run kafka-fixture && npm run coverage",
     "test-jenkins": "npm run kafka-install && npm run kafka-stop && npm run kafka-start && npm run kafka-fixture && npm run coverage && npm run kafka-stop",
     "test-travis": "npm run kafka-install && npm run kafka-start && npm run kafka-fixture && npm run coverage && npm run coveralls"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wikimedia/kasocki.git"
+    "url": "https://phabricator.wikimedia.org/diffusion/WKSK/kasocki.git"
   },
   "keywords": [
     "kafka",
@@ -29,9 +29,9 @@
   "author": "Andrew Otto <otto@wikimedia.org>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ottomata/kasocki/issues"
+    "url": "https://phabricator.wikimedia.org/search/query/fpxAPkMeWqjh/"
   },
-  "homepage": "https://github.com/ottomata/kasocki#readme",
+  "homepage": "https://github.com/wikimedia/kasocki#readme",
   "dependencies": {
     "bunyan": "^1.8.1",
     "bluebird": "^3.4.3",
