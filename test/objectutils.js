@@ -14,6 +14,7 @@ var o = {
         'e': 1,
         'r': 'abbbbc',
     },
+    'array': ['a', 'b', 'c']
 };
 
 describe('factory', () => {
@@ -58,21 +59,34 @@ describe('match', () => {
     it('should match regexes against strings based on dotted keys', () => {
         assert.ok(objectutils.match(o, {'o2.r': /^ab+c/}), 'regex should match');
         assert.ok(!objectutils.match(o, {'o2.r': /^b.*$/}), 'regex should not match');
-    })
+    });
 
     it('should match regexes against strings and literals based on dotted keys', () => {
         assert.ok(objectutils.match(o, {'o2.r': /^ab+c/, 'a': 'b'}), 'regex and literal should match');
         assert.ok(!objectutils.match(o, {'o2.r': /^b.*$/, 'a': 'c'}), 'regex should match but literal should not');
-    })
+    });
 
     it('should not match object filter', () => {
         assert.ok(!objectutils.match(o, {'a': {'no': 'good'}}), 'cannot match with object as filter');
-    })
+    });
 
     it('should not match object as key target', () => {
         assert.ok(!objectutils.match(o, {'o2': 'nope'}), 'cannot match with object as key target');
-    })
+    });
 
+    it('should inclusive match an array', () => {
+        assert.ok(objectutils.match(o, {'array': ['a']}), 'should match array value');
+        assert.ok(objectutils.match(o, {'array': ['a', 'b']}), 'should match array values');
+        assert.ok(!objectutils.match(o, {'array': ['a', 'd']}), 'should not match array values that are not in array');
+        assert.ok(!objectutils.match(o, {'array': 1}), 'should not array match int');
+        assert.ok(!objectutils.match(o, {'array': 'a'}), 'should not array match string');
+        assert.ok(!objectutils.match(o, {'array':  {'already': 'tested'}}), 'should not array match obj');
+    });
+
+    it('should match a literal in an array of possibilities', () => {
+        assert.ok(objectutils.match(o, {'a': ['a', 'b']}), 'should match array of possiblities');
+        assert.ok(!objectutils.match(o, {'a': ['d', 'e']}), 'should not match of possibilities');
+    });
 });
 
 
@@ -89,13 +103,19 @@ describe('buildFilters', () => {
         assert.deepEqual(built['a.b.c'], /(woo|wee)/, 'should convert filter to a RegExp');
     });
 
+    it('should build an array filter', () => {
+        let filters = {'a.b.c': ['a', 'b']};
+        let built = objectutils.buildFilters(filters);
+        assert.deepEqual(built, filters);
+    });
+
     it('should fail with a non object', () => {
         let filters = 'gonna fail dude';
         assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 
     it('should fail with a non string or number filter', () => {
-        let filters = {'a.b.c': [1,2,3]};
+        let filters = {'a.b.c': {'no': 'good'}};
         assert.throws(objectutils.buildFilters.bind(undefined, filters));
     });
 

@@ -797,7 +797,7 @@ describe('Kasocki', function() {
                 let shouldHave = [
                     { topic: topicNames[1], offset: 0 },
                     { topic: topicNames[1], offset: 1 }
-                ]
+                ];
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
@@ -834,7 +834,7 @@ describe('Kasocki', function() {
                 // to have been consumed.
                 let shouldHave = [
                     { topic: topicNames[1], offset: 0 },
-                ]
+                ];
                 assert.topicOffsetsInMessages([msg], shouldHave);
             })
             .then(done, (e) => { done(e) })
@@ -968,6 +968,90 @@ describe('Kasocki', function() {
             })
             .then((returnedFilters) => {
                 assert.equal(returnedFilters, undefined, 'filters should be reset to undefined');
+            })
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
+        });
+    });
+
+    it('should consume two messages from two topics with an array filter against an array subject', (done) => {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        // Filter where tags has both door and product
+        const filters = {
+            'tags': ['door', 'product']
+        };
+
+        client.on('ready', () => {
+
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                return client.emitAsync('filter', filters)
+            })
+            .then(() => {
+                // Consume two messages
+                return Promise.all([
+                    client.emitAsync('consume', null),
+                    client.emitAsync('consume', null)
+                ]);
+            })
+            .then((messages) => {
+                // Look for each of the following topic and offsets
+                // to have been consumed.
+                let shouldHave = [
+                    { topic: topicNames[1], offset: 0 },
+                    { topic: topicNames[1], offset: 1 }
+                ];
+                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
+                assert.topicOffsetsInMessages(messages, shouldHave);
+            })
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
+        });
+    });
+
+    it('should consume three messages from two topics with an array filter against a value subject', (done) => {
+        const client = createClient(serverPort);
+
+        const assignment = [
+            { topic: topicNames[0], partition: 0, offset: 0 },
+            { topic: topicNames[1], partition: 0, offset: 0 }
+        ];
+
+        // Filter where price is 12.50 or 25.00
+        const filters = {
+            'price': [12.50, 25.00]
+        };
+
+        client.on('ready', () => {
+
+            client.emitAsync('subscribe', assignment)
+            .then((subscribedTopics) => {
+                return client.emitAsync('filter', filters)
+            })
+            .then(() => {
+                // Consume three messages
+                return Promise.all([
+                    client.emitAsync('consume', null),
+                    client.emitAsync('consume', null),
+                    client.emitAsync('consume', null)
+                ]);
+            })
+            .then((messages) => {
+                // Look for each of the following topic and offsets
+                // to have been consumed.
+                let shouldHave = [
+                    { topic: topicNames[0], offset: 0 },
+                    { topic: topicNames[1], offset: 0 },
+                    { topic: topicNames[1], offset: 1 }
+                ];
+                assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
+                assert.topicOffsetsInMessages(messages, shouldHave);
             })
             .then(done, (e) => { done(e) })
             .finally(() => { client.disconnect() });

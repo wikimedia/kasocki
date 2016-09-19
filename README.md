@@ -239,9 +239,6 @@ and will have to be resolved somehow before this is put into production.
 ## TODO
 
 - tests for kafkaEventHandlers
-- Filter for array values
-- filter glob wildcards?
-- filter with some other thing?  JSONPath?
 - move Kafka test topic and data to fixtures?
 - docker with kafka
 - Get upstream fix for https://github.com/Blizzard/node-rdkafka/issues/5
