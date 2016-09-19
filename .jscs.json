@@ -27,6 +27,7 @@
     "node_modules/**",
     "test/**",
     "coverage/**",
+    "cover/**",
     "docs/**",
     "scr/**"
   ]
