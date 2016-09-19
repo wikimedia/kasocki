@@ -239,8 +239,6 @@ and will have to be resolved somehow before this is put into production.
 ## TODO
 
 - tests for kafkaEventHandlers
-- move Kafka test topic and data to fixtures?
-- docker with kafka
 - Get upstream fix for https://github.com/Blizzard/node-rdkafka/issues/5
   this will need to be resolved before this can be used in any type of production
   setting.
