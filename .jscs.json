@@ -28,6 +28,6 @@
     "test/**",
     "coverage/**",
     "docs/**",
-    "scr/**",
+    "scr/**"
   ]
 }
