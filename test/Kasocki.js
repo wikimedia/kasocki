@@ -121,7 +121,10 @@ describe('Kasocki', function() {
     });
 
     function createClient(port) {
-        return P.promisifyAll(require('socket.io-client')(`http://localhost:${port}/`));
+        const client = require('socket.io-client')(`http://localhost:${port}/`);
+        // create a bound function for ease of passing to a .then handler.
+        client._disconnect = client.disconnect.bind(client);
+        return P.promisifyAll(client);
     }
 
     before(function() {
@@ -136,7 +139,7 @@ describe('Kasocki', function() {
 
     // == Test connect
 
-    it('should connect and return existent topics', function(done) {
+    it('should connect and return existent topics', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             // assert that each of these is in available topics returned by
@@ -153,7 +156,7 @@ describe('Kasocki', function() {
         });
     });
 
-    it('should connect and return only allowed topics', function(done) {
+    it('should connect and return only allowed topics', (done) => {
         const client = createClient(restrictiveServerPort);
         client.on('ready', (availableTopics) => {
             assert.equal(
@@ -176,7 +179,7 @@ describe('Kasocki', function() {
 
     // == Test subscribe to latest
 
-    it('should subscribe to a single topic', function(done) {
+    it('should subscribe to a single topic', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0]])
@@ -189,14 +192,12 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(assignments, shouldBe);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should subscribe to multiple topics', function(done) {
+    it('should subscribe to multiple topics', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0], topicNames[1]])
@@ -212,43 +213,37 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(assignments, shouldBe);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe to a non Array', function(done) {
+    it('should fail subscribe to a non Array', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', {'this': 'will fail'})
             .catch((e) => {
                 assert.errorNameEqual(e, 'InvalidAssignmentError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
-    it('should fail subscribe to a single non existent topic', function(done) {
+    it('should fail subscribe to a single non existent topic', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', ['non-existent-topic'])
             .catch((e) => {
                 assert.errorNameEqual(e, 'TopicNotAvailableError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe to multiple topics, one of which does not exist', function(done) {
+    it('should fail subscribe to multiple topics, one of which does not exist', (done) => {
         const client = createClient(serverPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0], 'non-existent-topic'])
@@ -256,14 +251,12 @@ describe('Kasocki', function() {
                 // TODO check err type?
                 assert.ok(true, 'should throw an error');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should subscribe to a single allowed topic', function(done) {
+    it('should subscribe to a single allowed topic', (done) => {
         const client = createClient(restrictiveServerPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0]])
@@ -276,14 +269,12 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(assignments, shouldBe);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should subscribe to a multiple allowed topics', function(done) {
+    it('should subscribe to a multiple allowed topics', (done) => {
         const client = createClient(restrictiveServerPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0], topicNames[1]])
@@ -299,28 +290,24 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(assignments, shouldBe);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe to a single unallowed topic', function(done) {
+    it('should fail subscribe to a single unallowed topic', (done) => {
         const client = createClient(restrictiveServerPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', ['non-existent-topic'])
             .catch((e) => {
                 assert.errorNameEqual(e, 'TopicNotAvailableError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe to a multiple topics with at least one not allowed', function(done) {
+    it('should fail subscribe to a multiple topics with at least one not allowed', (done) => {
         const client = createClient(restrictiveServerPort);
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0], 'non-existent-topic'])
@@ -328,14 +315,12 @@ describe('Kasocki', function() {
                 // TODO check err type?
                 assert.ok(true, 'should throw an error');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe if already subscribed', function(done) {
+    it('should fail subscribe if already subscribed', (done) => {
         const client = createClient(serverPort);
 
         client.on('ready', () => {
@@ -347,17 +332,15 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'AlreadySubscribedError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
     // == Test subscribe with offset
 
-    it('should subscribe with offsets to a single topic', function(done) {
+    it('should subscribe with offsets to a single topic', (done) => {
         const client = createClient(serverPort);
         const assignment = [ { topic: topicNames[0], partition: 0, offset: 0 } ];
 
@@ -371,14 +354,12 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(returnedAssignment, assignment);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should subscribe with offsets to a single allowed topic', function(done) {
+    it('should subscribe with offsets to a single allowed topic', (done) => {
         const client = createClient(restrictiveServerPort);
         const assignment = [ { topic: topicNames[0], partition: 0, offset: 0 } ];
 
@@ -392,14 +373,12 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(returnedAssignment, assignment);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe with offsets to a single not available topic', function(done) {
+    it('should fail subscribe with offsets to a single not available topic', (done) => {
         const client = createClient(serverPort);
         const assignment = [ { topic: 'not-a-topic', partition: 0, offset: 0 } ];
 
@@ -409,14 +388,12 @@ describe('Kasocki', function() {
                 // TODO check err type?
                 assert.ok(true, 'should throw an error');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail subscribe with offsets to a single not allowed topic', function(done) {
+    it('should fail subscribe with offsets to a single not allowed topic', (done) => {
         const client = createClient(restrictiveServerPort);
         const assignment = [ { topic: 'kasocki_test_04', partition: 0, offset: 0 } ];
 
@@ -425,14 +402,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'TopicNotAvailableError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should subscribe with offsets to a multiple topics', function(done) {
+    it('should subscribe with offsets to a multiple topics', (done) => {
         const client = createClient(serverPort);
         const assignment = [
             { topic: topicNames[0], partition: 0, offset: 0 },
@@ -449,15 +424,13 @@ describe('Kasocki', function() {
                 );
                 assert.topicOffsetsInAssignments(returnedAssignment, assignment);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
-    it('should fail subscribe with offsets to a multiple topics where one is not available', function(done) {
+    it('should fail subscribe with offsets to a multiple topics where one is not available', (done) => {
         const client = createClient(serverPort);
         const assignment = [
             { topic: topicNames[0], partition: 0, offset: 0 },
@@ -469,16 +442,14 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'TopicNotAvailableError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
     // == Test error socket event ==
 
-    it('should fail consume if not yet subscribed and emit error event', function(done) {
+    it('should fail consume if not yet subscribed and emit error event', (done) => {
         const client = createClient(serverPort);
 
         client.on('ready', (availableTopics) => {
@@ -503,7 +474,7 @@ describe('Kasocki', function() {
 
     // == Test consume ==
 
-    it('should consume a single message from a single topic', function(done) {
+    it('should consume a single message from a single topic', (done) => {
         const client = createClient(serverPort);
         const assignment = [{ topic: topicNames[0], partition: 0, offset: 0 }];
 
@@ -516,14 +487,12 @@ describe('Kasocki', function() {
             .then((msg) => {
                 assert.equal(msg._kafka.offset, 0, `check kafka offset in ${topicNames[0]}`);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         })
     });
 
-    it('should consume two messages from a single topic', function(done) {
+    it('should consume two messages from a single topic', (done) => {
         const client = createClient(serverPort);
         const assignment = [{ topic: topicNames[1], partition: 0, offset: 0 }];
 
@@ -541,14 +510,12 @@ describe('Kasocki', function() {
             .then((msg) => {
                 assert.equal(msg._kafka.offset, 1, `check kafka offset in ${topicNames[0]}`);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should consume three messages from two topics', function(done) {
+    it('should consume three messages from two topics', (done) => {
         const client = createClient(serverPort);
         client.on('ready', () => {
             const assignment = [
@@ -575,14 +542,12 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail consume if not yet subscribed', function(done) {
+    it('should fail consume if not yet subscribed', (done) => {
         const client = createClient(serverPort);
 
         client.on('ready', (availableTopics) => {
@@ -594,14 +559,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'NotSubscribedError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         })
     });
 
-    it('should not fail consume if a topic has bad data', function(done) {
+    it('should not fail consume if a topic has bad data', (done) => {
         const client = createClient(serverPort);
         // topicNames[2] has invalid json at offset 0
         const assignment = [{ topic: topicNames[2], partition: 0, offset: 0 }];
@@ -619,14 +582,12 @@ describe('Kasocki', function() {
                 // transparently.
                 assert.equal(msg._kafka.offset, 1, `check kafka offset in ${topicNames[0]}`);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         })
     });
 
-    it('should subscribe and consume with offset reset to latest', function(done) {
+    it('should subscribe and consume with offset reset to latest', (done) => {
         // Since we will produce data to kasocki_test_04, it is reserved for
         // this test only.
         const topicName = 'kasocki_test_04';
@@ -684,15 +645,14 @@ describe('Kasocki', function() {
                     // Since we produced 1 more message, we should have consumed the 3rd message at offset 2.
                     assert.equal(msg._kafka.offset, 2, `offset should have reset to latest in ${topicName}`);
                 })
-                .finally(() => {
-                    client.disconnect();
-                    done();
-                });
+                .then(done)
+                .catch(e => { done(e) })
+                .finally(() => { client.disconnect() });
             });
         });
     });
 
-    it('should subscribe and consume with offset reset to earliest', function(done) {
+    it('should subscribe and consume with offset reset to earliest', (done) => {
         const earliestServerPort = 6905;
         const earliestServer = new TestKasockiServer(earliestServerPort, {
             kafkaConfig: {
@@ -715,10 +675,10 @@ describe('Kasocki', function() {
             .then((msg) => {
                 assert.equal(msg._kafka.offset, 0, `offset should have reset to earliest in ${topicNames[1]}`);
             })
+            .then(done, (e) => { done(e) })
             .finally(() => {
                 client.disconnect();
                 earliestServer.close();
-                done();
             });
         });
     });
@@ -726,7 +686,7 @@ describe('Kasocki', function() {
 
     // == Test filter ==
 
-    it('should consume two messages from two topics with a simple filter', function(done) {
+    it('should consume two messages from two topics with a simple filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -762,14 +722,12 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should consume two messages from two topics with a dotted filter', function(done) {
+    it('should consume two messages from two topics with a dotted filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -804,14 +762,12 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should consume two messages from two topics with a regex filter', function(done) {
+    it('should consume two messages from two topics with a regex filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -846,14 +802,12 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should consume one message from two topics with a dotted and a regex filter', function(done) {
+    it('should consume one message from two topics with a dotted and a regex filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -884,14 +838,12 @@ describe('Kasocki', function() {
                 ]
                 assert.topicOffsetsInMessages([msg], shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail filter with just a string', function(done) {
+    it('should fail filter with just a string', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -910,14 +862,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'InvalidFilterError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail filter with an object filter', function(done) {
+    it('should fail filter with an object filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -938,14 +888,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'InvalidFilterError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail filter with a bad regex', function(done) {
+    it('should fail filter with a bad regex', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -966,14 +914,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'InvalidFilterError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail filter with an unsafe regex', function(done) {
+    it('should fail filter with an unsafe regex', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -994,14 +940,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'InvalidFilterError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should reset filters', function(done) {
+    it('should reset filters', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1026,17 +970,15 @@ describe('Kasocki', function() {
             .then((returnedFilters) => {
                 assert.equal(returnedFilters, undefined, 'filters should be reset to undefined');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
     // == Test push based consume with start
 
-    it('should handle three messages from two topics', function(done) {
+    it('should handle three messages from two topics', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1069,15 +1011,13 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
-    it('should handle one message from two topics with a dotted and a regex filter', function(done) {
+    it('should handle one message from two topics with a dotted and a regex filter', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1117,14 +1057,12 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail start if not yet subscribed', function(done) {
+    it('should fail start if not yet subscribed', (done) => {
         const client = createClient(serverPort);
 
         client.on('ready', (availableTopics) => {
@@ -1136,14 +1074,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'NotSubscribedError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         })
     });
 
-    it('should fail start if already started', function(done) {
+    it('should fail start if already started', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1162,14 +1098,12 @@ describe('Kasocki', function() {
             .catch((e) => {
                 assert.errorNameEqual(e, 'AlreadyStartedError');
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should fail start if already started and handle an err socket event', function(done) {
+    it('should fail start if already started and handle an err socket event', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1193,17 +1127,15 @@ describe('Kasocki', function() {
                 // do nothing, we will check that the err socket event
                 // handler gets the error.
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
     // == Test stop ==
 
-    it('should do nothing if stopped before started', function(done) {
+    it('should do nothing if stopped before started', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1221,14 +1153,12 @@ describe('Kasocki', function() {
             .then(() => {
                 assert.ok(true);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
-    it('should handle three messages from two topics with stop and resume', function(done) {
+    it('should handle three messages from two topics with stop and resume', (done) => {
         const client = createClient(serverPort);
 
         const assignment = [
@@ -1271,17 +1201,15 @@ describe('Kasocki', function() {
                 assert.equal(messages.length, shouldHave.length, `should have consumed ${shouldHave.length} messages, but consumed ${messages.length}`);
                 assert.topicOffsetsInMessages(messages, shouldHave);
             })
-            .finally(() => {
-                client.disconnect();
-                done();
-            });
+            .then(done, (e) => { done(e) })
+            .finally(() => { client.disconnect() });
         });
     });
 
 
     // == Test custom message deserializer
 
-    it('should take a custom message deserializer and use it', function(done) {
+    it('should take a custom message deserializer and use it', (done) => {
 
         const shouldBe = {'i am': 'not a good deserializer'}
 
@@ -1313,16 +1241,16 @@ describe('Kasocki', function() {
                 .then((msg) => {
                     assert.deepEqual(msg, shouldBe, 'should custom deserialize message');
                 })
+                .then(done, (e) => { done(e) })
                 .finally(() => {
                     client.disconnect();
                     customDeserializingServer.close();
-                    done();
                 })
             })
         })
     });
 
-    it('should not throw error to client for deserialization error', function(done) {
+    it('should not throw error to client for deserialization error', (done) => {
         // create a custom Kasocki server with a custom message deserializer
         // for this test.
         const customDeserializingServerPort = 6093;
@@ -1360,10 +1288,10 @@ describe('Kasocki', function() {
                     // Error thrown when offset === 0 by the deserializer.
                     assert.deepEqual(msg, {'offset': 1}, 'should skip first message because of DeserializationError');
                 })
+                .then(done, (e) => { done(e) })
                 .finally(() => {
                     client.disconnect();
                     customDeserializingServer.close();
-                    done();
                 })
             })
         })
