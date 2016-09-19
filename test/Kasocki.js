@@ -248,8 +248,7 @@ describe('Kasocki', function() {
         client.on('ready', (availableTopics) => {
             client.emitAsync('subscribe', [topicNames[0], 'non-existent-topic'])
             .catch((e) => {
-                // TODO check err type?
-                assert.ok(true, 'should throw an error');
+                assert.errorNameEqual(e, 'TopicNotAvailableError');
             })
             .then(done, (e) => { done(e) })
             .finally(() => { client.disconnect() });
